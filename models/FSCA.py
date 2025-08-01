@@ -45,8 +45,8 @@ class FSCA(nn.Module):
         
         if configs.is_gpt:
             if configs.pretrain:
-                config = GPT2Config.from_pretrained('/my8T/yq/gyy/FSCA/Long-term_Forecasting/gpt2')
-                self.gpt2 = GPT2withGNN.from_pretrained('/my8T/yq/gyy/FSCA/Long-term_Forecasting/gpt2', config=config, args=configs)
+                config = GPT2Config.from_pretrained('openai-community/gpt2')
+                self.gpt2 = GPT2withGNN.from_pretrained('openai-community/gpt2', config=config, args=configs)
 
                 if configs.freeze and configs.pretrain:
                     for i, (name, param) in enumerate(self.gpt2.named_parameters()):
@@ -58,7 +58,7 @@ class FSCA(nn.Module):
                             param.requires_grad = False
 
                 self.tokenizer = GPT2Tokenizer.from_pretrained(
-                    '/my8T/yq/gyy/FSCA/Long-term_Forecasting/gpt2',
+                    'openai-community/gpt2',
                     trust_remote_code=True,
                     local_files_only=True
                 )

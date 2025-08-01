@@ -2,18 +2,6 @@
   <h2><b> GraFT: Infusing Pre-trained Transformers with Relational Structure for Time Series Forecasting </b></h2>
 </div>
 
-## Table of Contents
-- [Getting Started](#getting-started)
-  - [1. Environment Setup](#1-environment-setup)
-  - [2. Datasets](#2-datasets)
-  - [3. Training & Reproduction](#3-training--reproduction)
-- [Results](#results)
-  - [Long-Term Forecasting](#long-term-forecasting)
-  - [Zero-Shot Forecasting](#zero-shot-forecasting)
-  - [Visualization of Forecasts](#visualization-of-forecasts)
-  - [Hyperparameter Sensitivity](#hyperparameter-sensitivity)
-- [Acknowledgements](#acknowledgements)
-
 ## Getting Started
 
 ### 1. Environment Setup
@@ -68,13 +56,9 @@ bash scripts/Weather/Weather_96.sh
 ![Zero-shot Forecasting Results](figures/zero-full.jpg)
 
 ### Visualization of Forecasting Results
-ETTh1
 ![ETTh1 Visualization](figures/ETTh1.jpg)
-ETTm1
 ![ETTm1 Visualization](figures/ETTm1.jpg)
-ECL 
 ![ECL Visualization](figures/ECL.jpg) 
-ILI
 ![ILI Visualization](figures/ILI.jpg) 
 
 
