@@ -1,0 +1,34 @@
+python main.py \
+    --batch_size=1024 \
+    --c_out=7 \
+    --d_ff=512 \
+    --d_l_comp=512 \
+    --d_model=768 \
+    --data=ETTh1 \
+    --data_path=nan \
+    --decay_fac=0.5 \
+    --edge_eta_min=1e-08 \
+    --enc_in=7 \
+    --eta_min=1e-08 \
+    --features=M \
+    --freq=0 \
+    --in_dropout=0.3 \
+    --is_gpt=1 \
+    --itr=1 \
+    --layer_index=4*0* \
+    --learning_rate=0.001 \
+    --lradj=COS \
+    --model=GraFT \
+    --multi=1 \
+    --out_dropout=0.1 \
+    --patch_size_stride="48 48" \
+    --patience=20 \
+    --pred_len=720 \
+    --revin_flag=0 \
+    --root_path=nan \
+    --seed=42 \
+    --seq_len=512 \
+    --sweep_flag=1 \
+    --test_flag=0 \
+    --tmax=20
+
