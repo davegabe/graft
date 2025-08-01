@@ -13,7 +13,6 @@
   - [Visualization of Forecasts](#visualization-of-forecasts)
   - [Hyperparameter Sensitivity](#hyperparameter-sensitivity)
 - [Acknowledgements](#acknowledgements)
-- [Citation](#citation)
 
 ## Getting Started
 
@@ -34,7 +33,7 @@ bash env.sh
 
 ### 2. Datasets
 
-Download the required datasets from the [TimesNet repository](https://github.com/thuml/Time-Series-Library), then place the downloaded contents under ./datasets.
+Download the required datasets from https://github.com/thuml/Time-Series-Library, then place the downloaded contents under ./datasets.
 
 ### 3. Training & Reproduction
 
@@ -68,7 +67,7 @@ bash scripts/Weather/Weather_96.sh
 ### Zero-Shot Forecasting
 ![Zero-shot Forecasting Results](figures/zero-full.jpg)
 
-### Visualization of Forecasts
+### Visualization of Forecasting Results
 ETTh1
 ![ETTh1 Visualization](figures/ETTh1.jpg)
 ETTm1
