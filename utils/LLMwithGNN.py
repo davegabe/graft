@@ -1,3 +1,4 @@
+from typing import Optional, Union, List, Tuple, Any, Dict
 import numpy as np
 import numpy as np
 import torch
@@ -5,6 +6,7 @@ import torch.nn as nn
 from torch import optim
 
 from transformers.models.gpt2.modeling_gpt2 import *
+from transformers.modeling_outputs import BaseModelOutputWithPastAndCrossAttentions
 from transformers import LlamaConfig, LlamaModel, LlamaTokenizer, GPT2Config, GPT2Model, GPT2Tokenizer, BertConfig, \
     BertModel, BertTokenizer
 from einops import rearrange
