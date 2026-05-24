@@ -39,31 +39,38 @@ class RelationalGCNLayer(nn.Module):
         nn.init.zeros_(self.bias)
     
     def forward(self, x, edge_index, edge_type, edge_weight=None):
+        N = x.size(0)
         out = torch.matmul(x, self.self_loop_weight)
-        
+
         for r in range(self.num_relations):
             mask = (edge_type == r)
-            if mask.any():
-                r_edge_index = edge_index[:, mask]
-                r_edge_weight = edge_weight[mask] if edge_weight is not None else None
-                
-                x_transformed = torch.matmul(x, self.weight[r])
-                
-                row, col = r_edge_index
-                out_r = torch.zeros_like(out)
-                
-                if r_edge_weight is not None:
-                    out_r.index_add_(0, row, x_transformed[col] * r_edge_weight.unsqueeze(-1))
-                else:
-                    out_r.index_add_(0, row, x_transformed[col])
-                
-                out += out_r
-        
+            if not mask.any():
+                continue
+            r_edge_index = edge_index[:, mask]
+            r_edge_weight = edge_weight[mask] if edge_weight is not None else None
+
+            x_transformed = torch.matmul(x, self.weight[r])
+
+            row, col = r_edge_index
+
+            # Degree normalization: D^{-1/2} A D^{-1/2} per relation
+            deg = torch.zeros(N, device=x.device)
+            deg.index_add_(0, row, torch.ones(mask.sum(), device=x.device))
+            deg_inv_sqrt = deg.pow(-0.5)
+            deg_inv_sqrt[deg == 0] = 0.0
+
+            out_r = torch.zeros_like(out)
+            msgs = x_transformed[col] * deg_inv_sqrt[col].unsqueeze(-1)
+            if r_edge_weight is not None:
+                msgs = msgs * r_edge_weight.unsqueeze(-1)
+            out_r.index_add_(0, row, msgs)
+            out += out_r * deg_inv_sqrt.unsqueeze(-1)
+
         out += self.bias
-        
+
         if self.activation:
             out = F.relu(out)
-        
+
         return out
 
 

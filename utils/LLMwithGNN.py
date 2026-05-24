@@ -418,13 +418,9 @@ def cosine_similarity_edges(input, B_edge_all):
 
 
 def norm_weight(edge_weights, mask):
-    # test
-    # edge_weights = torch.tensor([12, 17, 71, 42, 28, 30, 55, 45], dtype=torch.float32)
-    # mask = torch.tensor([1, 1, 1, 2, 2, 2, 3, 3], dtype=torch.int)
-
     sums = torch.zeros(mask.max().item() + 1, device=edge_weights.device)
     sums.index_add_(0, mask, edge_weights)
 
-    normalized_weights = edge_weights / sums[mask]
-    # print("Normalized Weights:", normalized_weights)
+    # Clamp to avoid division by zero when all edges in a group are anti-parallel
+    normalized_weights = edge_weights / sums[mask].clamp(min=1e-8)
     return normalized_weights
