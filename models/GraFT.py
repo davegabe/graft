@@ -503,6 +503,15 @@ class GraFT(nn.Module):
                 configs.d_model = config.hidden_size
                 
                 self.gpt2 = GPT2withHPRG.from_pretrained('gpt2', config=config, args=configs)
+                # from_pretrained uses meta tensors; xavier_uniform_ is a no-op on them,
+                # so custom nn.Parameter weights (3-D) are materialized as zeros/garbage.
+                # Re-run reset_parameters() now that tensors have real storage.
+                for layer in self.gpt2.prg.gnn_layers_list:
+                    layer.reset_parameters()
+                # gate is a bare scalar nn.Parameter not covered by _init_weights.
+                # With certain seeds, meta-materialized garbage can be NaN.
+                with torch.no_grad():
+                    self.gpt2.prg.gate.fill_(configs.gate_init_prg)
 
                 if configs.freeze and configs.pretrain:
                     for i, (name, param) in enumerate(self.gpt2.named_parameters()):
