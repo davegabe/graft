@@ -47,6 +47,12 @@ class FSCA(nn.Module):
             if configs.pretrain:
                 config = GPT2Config.from_pretrained('openai-community/gpt2')
                 self.gpt2 = GPT2withGNN.from_pretrained('openai-community/gpt2', config=config, args=configs)
+                # from_pretrained uses meta tensors; PyG's GCNConv.bias (bare nn.Parameter)
+                # and lin.weight (PyG Linear, not nn.Linear) are not re-initialized by
+                # HuggingFace _init_weights → they retain garbage meta memory values.
+                # Re-run reset_parameters() after real storage is allocated.
+                self.gpt2.gnn_layer.reset_parameters()
+                self.gpt2.gnn_layer_l.reset_parameters()
 
                 if configs.freeze and configs.pretrain:
                     for i, (name, param) in enumerate(self.gpt2.named_parameters()):
