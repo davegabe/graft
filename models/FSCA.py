@@ -63,22 +63,25 @@ class FSCA(nn.Module):
                         else:
                             param.requires_grad = False
 
-                self.tokenizer = GPT2Tokenizer.from_pretrained(
-                    'openai-community/gpt2',
-                    trust_remote_code=True,
-                    local_files_only=True
-                )
-
-                if self.tokenizer.eos_token:
-                    self.tokenizer.pad_token = self.tokenizer.eos_token
-                else:
-                    pad_token = '[PAD]'
-                    self.tokenizer.add_special_tokens({'pad_token': pad_token})
-                    self.tokenizer.pad_token = pad_token
-
             else:
                 print("------------------no pretrain------------------")
                 self.gpt2 = GPT2Model(GPT2Config())
+
+            # The tokenizer is needed by BOTH branches: the fixed task/fix prompts
+            # below are tokenized unconditionally. Loading it only under `pretrain`
+            # left self.tokenizer undefined when pretrain=False.
+            self.tokenizer = GPT2Tokenizer.from_pretrained(
+                'openai-community/gpt2',
+                trust_remote_code=True,
+                local_files_only=True
+            )
+
+            if self.tokenizer.eos_token:
+                self.tokenizer.pad_token = self.tokenizer.eos_token
+            else:
+                pad_token = '[PAD]'
+                self.tokenizer.add_special_tokens({'pad_token': pad_token})
+                self.tokenizer.pad_token = pad_token
 
             self.gpt2.h = self.gpt2.h[:configs.gpt_layers]
             print("gpt2 = {}".format(self.gpt2))
@@ -114,6 +117,7 @@ class FSCA(nn.Module):
 
         task_prompt = f"Predict future sequences using previous data:"
         task_prompt_tok = self.tokenizer(task_prompt, return_tensors="pt", padding=True, truncation=True, max_length=2048).input_ids
+        self._task_prompt_tok = task_prompt_tok
         self.task_prompt_embeddings = self.gpt2.get_input_embeddings()(task_prompt_tok.to(self.device))  # (batch, prompt_token, dim)
         self.task_prompt_embeddings_expand = self.task_prompt_embeddings.float().expand(self.edge_expand_num, -1, -1).to(device) 
 
@@ -125,6 +129,7 @@ class FSCA(nn.Module):
         ### prompt format
         fix_prompt = f"Predict future sequences using previous data:"
         fix_prompt_tok = self.tokenizer(fix_prompt, return_tensors="pt", padding=True, truncation=True, max_length=2048).input_ids
+        self._fix_prompt_tok = fix_prompt_tok
         self.fix_prompt_embeddings = self.gpt2.get_input_embeddings()(fix_prompt_tok.to(self.device))  # (1, L, dim)
         self.fix_prompt_embeddings_expand = self.fix_prompt_embeddings.float().expand(self.edge_expand_num, -1, -1).to(device)
 
@@ -217,6 +222,28 @@ class FSCA(nn.Module):
         _, lags = torch.topk(mean_value, self.top_k, dim=-1)
         return lags
     
+
+    def refresh_prompt_embeddings(self):
+        """Recompute the cached prompt embeddings from the CURRENT gpt2 weights.
+
+        task_/fix_prompt_embeddings are plain tensors read off the gpt2 input
+        embedding table in __init__, so they are absent from state_dict(). After
+        load_state_dict() they would still hold values derived from the freshly
+        initialized table, making a reloaded model disagree with the saved one.
+        """
+        emb = self.gpt2.get_input_embeddings()
+        self.task_prompt_embeddings = emb(self._task_prompt_tok.to(self.device))
+        self.task_prompt_embeddings_expand = (
+            self.task_prompt_embeddings.float()
+            .expand(self.edge_expand_num, -1, -1)
+            .to(self.device)
+        )
+        self.fix_prompt_embeddings = emb(self._fix_prompt_tok.to(self.device))
+        self.fix_prompt_embeddings_expand = (
+            self.fix_prompt_embeddings.float()
+            .expand(self.edge_expand_num, -1, -1)
+            .to(self.device)
+        )
 
     def forward(self, x, itr):
         B, L, M = x.shape # torch.Size([32, 720, 1])
